@@ -39,7 +39,7 @@ type IngressAttribute struct {
 	IsPullRequest     bool   `jsonapi:"attr,is-pull-request"`
 	OnDefaultBranch   bool   `jsonapi:"attr,on-default-branch"`
 	PullRequestBody   string `jsonapi:"attr,pull-request-body"`
-	PullRequestNumber string `jsonapi:"attr,pull-request-number"`
+	PullRequestNumber int    `jsonapi:"attr,pull-request-number"`
 	PullRequestTitle  string `jsonapi:"attr,pull-request-title"`
 	PullRequestURL    string `jsonapi:"attr,pull-request-url"`
 	SenderAvatarURL   string `jsonapi:"attr,sender-avatar-url"`
