@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -24,6 +25,9 @@ type Runs interface {
 
 	// Read a run by its ID.
 	Read(ctx context.Context, runID string) (*Run, error)
+
+	// Read a run by its ID, also passing in a list of relationships to include
+	ReadInclude(ctx context.Context, runID string, include []string) (*Run, error)
 
 	// Apply a run by its ID.
 	Apply(ctx context.Context, runID string, options RunApplyOptions) error
@@ -103,6 +107,7 @@ type Run struct {
 	// Relations
 	Apply                *Apply                `jsonapi:"relation,apply"`
 	ConfigurationVersion *ConfigurationVersion `jsonapi:"relation,configuration-version"`
+	IngressAttribute     *IngressAttribute     `jsonapi:"relation,ingress-attribute"`
 	CostEstimate         *CostEstimate         `jsonapi:"relation,cost-estimate"`
 	Plan                 *Plan                 `jsonapi:"relation,plan"`
 	PolicyChecks         []*PolicyCheck        `jsonapi:"relation,policy-checks"`
@@ -232,11 +237,21 @@ func (s *runs) Create(ctx context.Context, options RunCreateOptions) (*Run, erro
 
 // Read a run by its ID.
 func (s *runs) Read(ctx context.Context, runID string) (*Run, error) {
+	return s.ReadInclude(ctx, runID, nil)
+}
+
+// Read a run by its ID.
+func (s *runs) ReadInclude(ctx context.Context, runID string, include []string) (*Run, error) {
 	if !validStringID(&runID) {
 		return nil, errors.New("invalid value for run ID")
 	}
 
-	u := fmt.Sprintf("runs/%s", url.QueryEscape(runID))
+	vals := url.Values{}
+	if len(include) > 0 {
+		vals.Set("include", strings.Join(include, ","))
+	}
+
+	u := fmt.Sprintf("runs/%s?%s", url.QueryEscape(runID), vals.Encode())
 	req, err := s.client.newRequest("GET", u, nil)
 	if err != nil {
 		return nil, err
